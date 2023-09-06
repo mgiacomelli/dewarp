@@ -102,7 +102,10 @@ int main()
 		sprintf(buf, "warpedFrame_%dchan_2048.bin", 16);	//2048x2048 test 
 		pFile = fopen(buf, "rb");
 		if (pFile == NULL)
+		{
+			printf("Could not open file: %s\n", buf);
 			return -2;
+		}
 
 		int bytesRead = fread(data, 1, samples * lines * sampleSize, pFile);
 		printf("read %d bytes\n", bytesRead);
