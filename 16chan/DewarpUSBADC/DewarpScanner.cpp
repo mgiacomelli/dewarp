@@ -771,6 +771,6 @@ void wsfiltgen(float* fir, int nt, double bw)
 	}
 
 	//normalize intensity
-	for (int i = 0; i < nt - 2; i++)
+	for (int i = 0; i < nt - 1; i++)
 		fir[i] /= sum;
 }
