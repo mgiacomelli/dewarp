@@ -68,16 +68,19 @@ int main()
 	//to improve benchmark accuracy
 	const int timesToAverage = 40;
 
-	//allocate a buffer worth of input data, force 64 bit alignment for ZMM registers
-	UINT16* data_p = (UINT16*)_aligned_malloc(samples * lines * sampleSize + 4096, 64); //6656 samples per trigger, 528 triggers per frame, 2 16 bit channels
+	//allocate a buffer worth of input data, force 64 bit alignment for ZMM registers, add 4096 bytes before and after for the FIR filter
+	UINT16* data_p = (UINT16*)_aligned_malloc(samples * lines * sampleSize + 4096*2, 64); //6656 samples per trigger, 528 triggers per frame, 2 16 bit channels
 
 	//aligned malloc does not initialize to zero and there is no aligned calloc, and should initialize accounting for DC offset
 	UINT16 zeroVal = dc_offset;
 
 	for (int i = 0; i < 2048; i++)
+	{
 		data_p[i] = zeroVal;
+		data_p[samples * lines * channels + 2048 + i] = zeroVal;
+	}
 
-	//hack so that we can safely access the addresses corresponding to missing samples at the start if no flyback samples
+	//hack so that we can safely access the addresses corresponding to missing samples at the start (and end) if no flyback samples
 	UINT16* data = data_p + 2048;
 
 	//allocate a frame of output data
