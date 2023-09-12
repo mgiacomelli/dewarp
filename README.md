@@ -10,10 +10,17 @@ The algorithm is implemented in matlab and c using Intel's AVX intrinsics.  See:
 The c implementation has two versions, one optimized for 4 channel processing and another optimized for 16 channel processing.  Both require the AVX512-FP16 extensions, which are currently officially supported on only the Intel Sapphire Rapids processors, although they can be unofficially enabled on the 12th gen Alder Lake.  They will likely also be supported on the upcoming AMD Zen 5 processors and then most new CPUs thereafter.  I have mostly working versions that work on older processors (although at much lower performance), but have not yet had time to clean them up.
 
 # compiling
-VS2022 project files are provided.  Initially the code was targeted at compilation using clang (either version included in VS or the free Intel fork) due to bugs in the VS compiler, but the VS team responded quickly and as of August 2023, they were able to get the VS compiler working (although it is not as fast as clang). 
+VS2022 project files are provided.  Initially the code was targeted at compilation using clang (either version included in VS or the free Intel fork) due to bugs in the VS compiler, but the VS team responded quickly and as of August 2023, they were able to get the VS compiler working (although it is not as fast as clang).  
 
 # performance
 With full FIR filtering enabled to maximize sensitivity, an Intel 12700k w/ DDR4-3000 gives 1400 MP/s in clang and 1250 MP/s in MSOC for 16 channel dewarping.  Performance scales fairly well out to about 3 threads before memory bandwidth limitations become a factor, so roughly 4000 MP/s multithreaded.  With a 12 KHz resonant scanner, you're limited to about 50 MP/s per channel, or about 800 MP/s across 16 channels, so this is about 5x real-time.  Disabling FIR filtering will increase performance roughly 50%.  
 
+# viewing the dewarped data
+The library is intended to plugin into OpenGL or similar graphics libraries, so it generates one buffer (texture) per spectral channel which is intended to be loaded into a GPU for display.  For testing the library saves these to disk.  An example matlab script (viewData.m) is provided for viewing them. 
 
+# forward/backward scan alignment
+A comnmon problem with bidirectional scanning is the alignment between the forward and backward scans, which are ideally at zero delay relative to one another (meaning eactly half of each buffer is forward scan, half backwards scan).  In reality since each sample is only a few nanoseconds long there will be a few samples of misalignment due to the trigger signal not being perfectly aligned with the galvo turn around, scanner frequency drift, length of cables in the system, etc.  The "shift" variable in the script is a floating point value that represents how many samples of delay should be added.  As a floating point value, fraction sample shifts are allowed, and in general this number will not be an integer.  It can be calculated exactly by cross-correlation of the forward and backward scans.  
+
+# example data
+Data files from two different microscopes are provided in the releases section.  There is also a script providied for turning 16 channel data into 4 channel data (converter16to4chan.m).  
 
